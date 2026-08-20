@@ -11,6 +11,8 @@ Description: Extracts count matrices, spatial coordinates, tissue images, UMAP
     installation of the cellgeni/cloupe package (not bundled; see
     'SystemRequirements').
 License: MIT + file LICENSE
+URL: https://github.com/niel-infante/Loupe2R
+BugReports: https://github.com/niel-infante/Loupe2R/issues
 Encoding: UTF-8
 Imports:
     Seurat (>= 5.0.0),

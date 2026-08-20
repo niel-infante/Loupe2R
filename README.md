@@ -10,7 +10,7 @@ Import 10x Genomics `.cloupe` files (including Visium HD) into [Seurat](https://
 
 ```r
 # install.packages("remotes")
-remotes::install_github("<your-org>/Loupe2R")
+remotes::install_github("niel-infante/Loupe2R")
 ```
 
 Loupe2R also requires, **separately**, a Python environment with `numpy`, `scipy`, and (optionally, for tissue images) `Pillow`, plus a local install of the [`cellgeni/cloupe`](https://github.com/cellgeni/cloupe) Python package (AGPL-3.0 — see [AGPL dependency](#agpl-dependency) below; **not** installed by Loupe2R):
