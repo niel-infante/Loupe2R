@@ -1,0 +1,27 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+.Renviron
+
+# R package build/check artifacts
+/*.tar.gz
+/*.Rcheck/
+/doc/
+/Meta/
+Rplots.pdf
+
+# vignette build intermediates (if rendered directly rather than via
+# devtools::build_vignettes(), which writes to /doc and /Meta instead)
+vignettes/*.html
+vignettes/*.R
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

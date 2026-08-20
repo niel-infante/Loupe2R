@@ -1,0 +1,15 @@
+{
+  "_comment": "Expected summary stats for outs/cloupe_008um.cloupe from the Samuelson Pair-Fed sample, computed once and cross-validated against the official SpaceRanger output at outs/binned_outputs/square_008um/. Regenerate only if the reference .cloupe file itself changes.",
+  "n_features": 19072,
+  "n_barcodes": 472752,
+  "total_umi": 3359577,
+  "bin_size_um": 8,
+  "spot_diameter_fullres": 1.721916,
+  "barcode_set_sha256": "6c3829febfe481aafb999ed202c634d9323d7b3db45ffbc1f8af14eaba5aee99",
+  "cloupe_format_info": {
+    "container": "9.0.0",
+    "run": "3.0.0",
+    "matrix": "6.3.0",
+    "projection": ["4.1.0"]
+  }
+}

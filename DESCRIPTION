@@ -1,0 +1,38 @@
+Package: Loupe2R
+Type: Package
+Title: Import 10x Genomics Visium '.cloupe' Files into Seurat Objects
+Version: 0.1.0
+Authors@R: person("Niel", "Infante", email = "nielinfante@gmail.com",
+           role = c("aut", "cre", "cph"))
+Description: Extracts count matrices, spatial coordinates, tissue images, UMAP
+    embeddings, and cluster labels from 10x Genomics .cloupe files (including
+    Visium HD) and imports them into Seurat objects via a Python extraction
+    step (reticulate). Requires Python with numpy, scipy, Pillow, and a local
+    installation of the cellgeni/cloupe package (not bundled; see
+    'SystemRequirements').
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+    Seurat (>= 5.0.0),
+    SeuratObject,
+    methods,
+    reticulate,
+    png,
+    jsonlite,
+    utils
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    arrow,
+    digest,
+    withr
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+RoxygenNote: 8.0.0
+Roxygen: list(markdown = TRUE)
+SystemRequirements: Python (>= 3.9) with numpy, scipy, Pillow; the
+    cellgeni/cloupe Python package (AGPL-3.0, https://github.com/cellgeni/cloupe),
+    installed separately by the user and referenced via set_cloupe_path() or
+    options(loupe2r.cloupe_pkg = ...) -- NOT bundled with or distributed by
+    this R package.

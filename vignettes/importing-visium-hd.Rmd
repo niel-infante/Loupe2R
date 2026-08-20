@@ -1,0 +1,119 @@
+---
+title: "Importing Visium HD cloupe files"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Importing Visium HD cloupe files}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE  # this vignette must build without the private Python/cloupe
+                # stack installed (see "Prerequisites" below), so nothing
+                # here actually executes during R CMD build/check.
+)
+```
+
+## Overview
+
+`Loupe2R` imports 10x Genomics `.cloupe` files -- including Visium HD -- into Seurat objects, by parsing the file's internal binary structure directly (there is no official export path for this). Read the [README's Limitations & Risks section](https://github.com/<your-org>/Loupe2R#limitations--risks) for the full picture; this vignette covers setup, usage, and the validation methodology in more depth.
+
+## Prerequisites
+
+`Loupe2R` calls out to a Python extraction step via `reticulate`. You need:
+
+1. Python with `numpy`, `scipy`, and (for tissue images) `Pillow`.
+2. A local install of [`cellgeni/cloupe`](https://github.com/cellgeni/cloupe) (AGPL-3.0, not bundled with this package -- see the README's AGPL note):
+
+```{r}
+# pip install numpy scipy Pillow
+# pip install git+https://github.com/cellgeni/cloupe.git
+```
+
+```{r}
+library(reticulate)
+use_condaenv("base", required = TRUE)  # any env with numpy/scipy/Pillow
+
+library(Loupe2R)
+set_cloupe_path("~/Tools/cloupe")  # only needed if not at the default location
+```
+
+## Basic usage
+
+```{r}
+srt <- cloupe_to_seurat("path/to/sample.cloupe")
+srt
+```
+
+```{r}
+Seurat::SpatialFeaturePlot(srt, features = "nCount_Spatial")
+```
+
+`cloupe_to_seurat()` also picks up, when present in the file: UMAP/other embeddings as `DimReduc` objects, Space Ranger clusterings (stored as metadata columns prefixed `sr_`), and any user-created Loupe Browser cell tracks.
+
+### Combining multiple bin resolutions
+
+A single `.cloupe` file captures only the one bin resolution that was open in Loupe Browser when it was saved. Seurat's official Visium HD path loads multiple resolutions from one SpaceRanger output directory at once:
+
+```{r}
+# Official SpaceRanger path (when you have the outs/ directory):
+srt_official <- Seurat::Load10X_Spatial("path/to/outs", bin.size = c(8, 16))
+Seurat::Assays(srt_official)
+#> [1] "Spatial.008um" "Spatial.016um"
+```
+
+`Loupe2R` cannot reproduce that from a single `.cloupe` file, but if you have separate `.cloupe` files per resolution for the same capture area, `combine_cloupe_bins()` assembles the same structure:
+
+```{r}
+s008 <- cloupe_to_seurat("sample_008um.cloupe")
+s016 <- cloupe_to_seurat("sample_016um.cloupe")
+srt  <- combine_cloupe_bins(s008, s016)
+Seurat::Assays(srt)
+#> [1] "Spatial.008um" "Spatial.016um"
+```
+
+This is a supported structure, not a workaround: Seurat v5's `Assay5` objects don't require all assays in one object to share an identical cell set, which is the same mechanism `Load10X_Spatial(bin.size = c(8, 16))` relies on. One caveat carries over here too -- the combined object's own cell identity (`Cells()`/`ncol()`, `meta.data`, idents) stays pinned to whichever object was passed first, even after switching `DefaultAssay()`. Index into a specific assay (`srt[["Spatial.016um"]]`) for resolution-specific work, exactly as in Seurat's own Visium HD workflows.
+
+## Limitations & Risks
+
+**The `.cloupe` format is undocumented and proprietary.** `Loupe2R` parses it via [`cellgeni/cloupe`](https://github.com/cellgeni/cloupe), an unofficial, reverse-engineered tool self-described upstream as a "PoC," with no version-compatibility guarantees. `Loupe2R` checks the file's internal format-version fields against a known-tested set on every extraction (`check_format_version()` in `inst/python/cloupe_extract.py`) and emits an R `warning()` -- while still proceeding -- if a file reports an unrecognized version. The detected versions are always available afterward via `Seurat::Misc(srt, "cloupe_format_info")`.
+
+**Loupe-derived annotations reflect default, unfiltered pipeline parameters.** [satijalab/seurat#9269](https://github.com/satijalab/seurat/issues/9269): Loupe Browser exports (and by extension, anything read back out of a `.cloupe` file) reflect whatever SpaceRanger/CellRanger ran with by default -- no manual QC, filtering, or normalization choices are captured. Treat `sr_*` clusterings as exploratory defaults.
+
+**Prefer official SpaceRanger output when you have it.** `Seurat::Load10X_Spatial()` on a real SpaceRanger `outs/` directory is authoritative. Use `Loupe2R` when you only have the `.cloupe` file, or to cross-check the two.
+
+## Validating against official SpaceRanger output
+
+If you have both a `.cloupe` file *and* its paired SpaceRanger `outs/` directory for the same sample, you can (and should) cross-check them directly:
+
+```{r}
+srt_cloupe   <- cloupe_to_seurat("outs/cloupe_008um.cloupe")
+srt_official <- Seurat::Load10X_Spatial("outs", bin.size = 8)
+
+# barcode overlap
+shared <- intersect(colnames(srt_cloupe), colnames(srt_official))
+length(shared) / ncol(srt_cloupe)
+
+# count agreement on shared barcodes
+cor(
+  srt_cloupe$nCount_Spatial[shared],
+  srt_official$nCount_Spatial.008um[shared]
+)
+```
+
+This exact methodology (see `tests/testthat/test-integration-visium-hd.R` in the package source, runnable locally by setting `LOUPE2R_TEST_DIR`) was used to validate `Loupe2R` against a real 8µm Visium HD sample (19,072 features x 472,752 barcodes):
+
+| Check | Result |
+|---|---|
+| Barcode overlap (cloupe vs. official filtered matrix) | 100% |
+| `nCount_Spatial` correlation on shared barcodes | 1.000000 |
+| `array_row`/`array_col` exact match vs. official `tissue_positions.parquet` | 100% (0 max difference) |
+| `pxl_row_in_fullres`/`pxl_col_in_fullres` correlation | 1.000000 |
+| `spot_diameter_fullres` vs. official `scalefactors_json.json` | exact match (1.721916) |
+
+The `array_row`/`array_col` result is worth explaining, because it wasn't the outcome originally expected. The first implementation computed array position as `round(pixel_coordinate / bin_size_px)` from the stitched image's own pixel coordinates -- reasonable-sounding, but it disagreed with SpaceRanger's official grid by roughly 450 bins on this sample: a large, near-constant offset, not the small boundary-rounding noise that approach was expected to produce. The cause was that the `.cloupe` file's stitched tissue image is cropped to the detected tissue region, so its pixel origin `(0, 0)` doesn't line up with SpaceRanger's own full-slide coordinate reference frame -- any fixed-origin reconstruction from pixel coordinates alone was going to inherit that offset.
+
+The fix: Visium HD barcodes already encode their exact grid position in the barcode string itself, e.g. `s_008um_00269_00526-1` is row 269, column 526 -- directly, with no reconstruction needed. `cloupe_extract.py`'s `parse_array_position()` parses this pattern when present, which is what produced the 100% exact match above across all 472,752 spots. Barcodes that don't follow this convention (e.g. `cellid_...`, from standard-Visium cell-segmentation `.cloupe` files) fall back to the pixel-based approximation, which is worth keeping in mind for that data type specifically.
