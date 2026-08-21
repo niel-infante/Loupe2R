@@ -1,8 +1,9 @@
 #' Import a 10x Genomics .cloupe file into a Seurat object
 #'
-#' Calls a Python extraction step via reticulate to read the .cloupe binary,
-#' then assembles a Seurat object with the count matrix, spatial coordinates,
-#' tissue image, UMAP embedding, and Spaceranger cluster labels.
+#' Calls the Python package \href{https://github.com/niel-infante/Loupe2Py}{loupe2py}
+#' via reticulate to read the .cloupe binary, then assembles a Seurat object
+#' with the count matrix, spatial coordinates, tissue image, UMAP embedding,
+#' and Spaceranger cluster labels.
 #'
 #' @param cloupe_path   Path to the .cloupe file.
 #' @param sample_name   Sample name stored in \code{orig.ident}. NULL (default)
@@ -10,14 +11,14 @@
 #' @param assay_name    Name for the Seurat assay (default "Spatial").
 #' @param slice_name    Name for the image slot (default "slice1").
 #' @param include_image Whether to extract and embed the tissue image.
-#'                      Requires Pillow in the active Python environment.
 #' @param outdir        Directory for intermediate extracted files.
 #'                      NULL = auto temp dir (deleted on return).
 #' @param keep_files    If TRUE and outdir is NULL, keep intermediate files.
 #'                      Useful for debugging.
 #' @param condaenv      Name of conda environment to activate before extraction
-#'                      (NULL = use current reticulate Python). Set to "base"
-#'                      if you have not configured reticulate yet.
+#'                      (NULL = use current reticulate Python). Set this to
+#'                      whichever environment has \code{loupe2py} installed if
+#'                      you have not otherwise configured reticulate.
 #'
 #' @return A Seurat object with metadata columns \code{orig.ident} and
 #'   \code{percent.mt} in addition to the standard \code{nFeature_Spatial}
@@ -26,7 +27,7 @@
 #' @examples
 #' \dontrun{
 #' library(reticulate)
-#' use_condaenv("base", required = TRUE)   # base conda has numpy/scipy/Pillow
+#' use_condaenv("loupe2py", required = TRUE)  # env with `pip install loupe2py`
 #'
 #' srt <- cloupe_to_seurat("path/to/sample.cloupe")
 #' SpatialFeaturePlot(srt, features = "nCount_Spatial")
@@ -50,11 +51,6 @@ cloupe_to_seurat <- function(
 
   cloupe_path <- normalizePath(path.expand(cloupe_path), mustWork = TRUE)
 
-  # Locate the Python extraction helper bundled with the package
-  py_helper <- system.file("python", "cloupe_extract.py", package = "Loupe2R")
-  if (!nzchar(py_helper))
-    stop("cloupe_extract.py not found in Loupe2R installation. Reinstall the package.")
-
   # Set up output directory
   cleanup <- is.null(outdir) && !keep_files
   if (is.null(outdir)) {
@@ -66,36 +62,21 @@ cloupe_to_seurat <- function(
   # ------------------------------------------------------------------
   # Python extraction
   # ------------------------------------------------------------------
-  # Fail fast with an actionable message if the cloupe package isn't where
-  # it's expected, rather than letting reticulate surface a cryptic
-  # ImportError from deep inside Python.
-  cloupe_pkg <- .resolve_cloupe_pkg()
-  Sys.setenv(LOUPE2R_CLOUPE_PATH = cloupe_pkg)
-
-  # Add the directory containing cloupe_extract.py to Python's path, then import
-  helper_dir <- dirname(py_helper)
-  reticulate::py_run_string(sprintf(
-    'import sys as _sys\n_h = "%s"\nif _h not in _sys.path: _sys.path.insert(0, _h)',
-    helper_dir
-  ))
-
-  tryCatch(
-    reticulate::py_run_string("import cloupe_extract as _ce"),
+  loupe2py <- tryCatch(
+    reticulate::import("loupe2py"),
     error = function(e) stop(
-      "Failed to import cloupe_extract. Check that the Python environment has\n",
-      "numpy, scipy, Pillow installed, and that the cloupe package is at:\n  ",
-      cloupe_pkg, "\n\nOriginal error: ", conditionMessage(e)
+      "Failed to import loupe2py. Install it with:\n",
+      "  pip install git+https://github.com/niel-infante/Loupe2Py.git\n",
+      "into the Python environment reticulate will use (numpy, scipy, and\n",
+      "Pillow are pulled in automatically as loupe2py dependencies; no\n",
+      "separate cloupe-parser install or path configuration is needed).\n\n",
+      "Original error: ", conditionMessage(e)
     )
   )
 
   message(sprintf("Extracting from %s (may take several minutes)...",
                   basename(cloupe_path)))
-  reticulate::py_run_string(sprintf(
-    '_ce.extract_cloupe("%s", "%s", include_image=%s)',
-    cloupe_path,
-    outdir,
-    if (include_image) "True" else "False"
-  ))
+  loupe2py$extract_cloupe(cloupe_path, outdir, include_image = include_image)
 
   # ------------------------------------------------------------------
   # Build Seurat object from extracted files

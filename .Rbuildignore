@@ -3,4 +3,3 @@
 ^\.DS_Store$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^inst/python/__pycache__$

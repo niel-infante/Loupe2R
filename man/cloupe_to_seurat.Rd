@@ -25,8 +25,7 @@ derives the name from the .cloupe filename.}
 
 \item{slice_name}{Name for the image slot (default "slice1").}
 
-\item{include_image}{Whether to extract and embed the tissue image.
-Requires Pillow in the active Python environment.}
+\item{include_image}{Whether to extract and embed the tissue image.}
 
 \item{outdir}{Directory for intermediate extracted files.
 NULL = auto temp dir (deleted on return).}
@@ -35,8 +34,9 @@ NULL = auto temp dir (deleted on return).}
 Useful for debugging.}
 
 \item{condaenv}{Name of conda environment to activate before extraction
-(NULL = use current reticulate Python). Set to "base"
-if you have not configured reticulate yet.}
+(NULL = use current reticulate Python). Set this to
+whichever environment has \code{loupe2py} installed if
+you have not otherwise configured reticulate.}
 }
 \value{
 A Seurat object with metadata columns \code{orig.ident} and
@@ -44,14 +44,15 @@ A Seurat object with metadata columns \code{orig.ident} and
 and \code{nCount_Spatial} fields.
 }
 \description{
-Calls a Python extraction step via reticulate to read the .cloupe binary,
-then assembles a Seurat object with the count matrix, spatial coordinates,
-tissue image, UMAP embedding, and Spaceranger cluster labels.
+Calls the Python package \href{https://github.com/niel-infante/Loupe2Py}{loupe2py}
+via reticulate to read the .cloupe binary, then assembles a Seurat object
+with the count matrix, spatial coordinates, tissue image, UMAP embedding,
+and Spaceranger cluster labels.
 }
 \examples{
 \dontrun{
 library(reticulate)
-use_condaenv("base", required = TRUE)   # base conda has numpy/scipy/Pillow
+use_condaenv("loupe2py", required = TRUE)  # env with `pip install loupe2py`
 
 srt <- cloupe_to_seurat("path/to/sample.cloupe")
 SpatialFeaturePlot(srt, features = "nCount_Spatial")

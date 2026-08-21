@@ -2,6 +2,5 @@
 
 export(cloupe_to_seurat)
 export(combine_cloupe_bins)
-export(set_cloupe_path)
 importFrom(methods,new)
 importFrom(utils,read.csv)
