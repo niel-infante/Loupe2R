@@ -2,7 +2,7 @@
 
 Import 10x Genomics `.cloupe` files (including Visium HD) into [Seurat](https://satijalab.org/seurat/) objects.
 
-Python/squidpy user? See the companion package, [**Loupe2Py**](https://github.com/niel-infante/Loupe2Py).
+Python/squidpy user? See the companion package, [**Loupe2Py**](https://github.com/niel-infante/Loupe2Py). Looking for the full function list (including internal, unexported functions)? See [`REFERENCE.md`](REFERENCE.md).
 
 `Loupe2R` extracts the count matrix, spatial coordinates, tissue image, UMAP embedding, and Space Ranger cluster labels from a `.cloupe` file and assembles a Seurat object from them, via [reticulate](https://rstudio.github.io/reticulate/) calling out to [`loupe2py`](https://github.com/niel-infante/Loupe2Py) — a separate, pip-installable Python package that does the actual `.cloupe` binary parsing (shared with [Loupe2Py](https://github.com/niel-infante/Loupe2Py), the squidpy/AnnData sibling of this package). See [Credits](#credits).
 
