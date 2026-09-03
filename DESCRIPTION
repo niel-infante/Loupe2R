@@ -1,7 +1,7 @@
 Package: Loupe2R
 Type: Package
 Title: Import 10x Genomics Visium '.cloupe' Files into Seurat Objects
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: person("Niel", "Infante", email = "nielinfante@gmail.com",
            role = c("aut", "cre", "cph"))
 Description: Extracts count matrices, spatial coordinates, tissue images, UMAP
@@ -9,7 +9,7 @@ Description: Extracts count matrices, spatial coordinates, tissue images, UMAP
     Visium HD) and imports them into Seurat objects via a Python extraction
     step (reticulate). Requires the Python package 'loupe2py' (not bundled;
     see 'SystemRequirements').
-License: MIT + file LICENSE
+License: AGPL-3 + file LICENSE
 URL: https://github.com/niel-infante/Loupe2R
 BugReports: https://github.com/niel-infante/Loupe2R/issues
 Encoding: UTF-8

@@ -1,3 +1,9 @@
+# Loupe2R 0.3.0
+
+## License change
+
+- `Loupe2R` is now licensed **AGPL-3.0-or-later** (previously MIT). It depends at runtime on `loupe2py`, which vendors AGPL-3.0-licensed code from [`cellgeni/cloupe`](https://github.com/cellgeni/cloupe); this release adopts that same license rather than drawing a technical line around the reticulate call. See the README's [AGPL dependency](https://github.com/niel-infante/Loupe2R#agpl-dependency) section for the reasoning.
+
 # Loupe2R 0.2.0
 
 ## Breaking changes

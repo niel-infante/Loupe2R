@@ -73,7 +73,7 @@ Validated against `.cloupe` files with container/index format `9.0.0`, run forma
 
 ### AGPL dependency
 
-Loupe2R itself is MIT-licensed. At runtime, it calls a separately-installed Python package, `loupe2py`, via reticulate — it does not bundle, vendor, or redistribute `loupe2py` or anything inside it. That keeps Loupe2R's own MIT license clean, the same way it did when this package called `cellgeni/cloupe` (AGPL-3.0) directly. What's changed is *where* the AGPL question actually lives: `loupe2py` now vendors a pinned copy of `cellgeni/cloupe`'s parser directly inside itself, and `loupe2py`'s own license is not yet finalized as a result — see its README. That's a `loupe2py`-level question, not a Loupe2R-level one, but it's real and needs resolving before either package goes out further than personal/lab use.
+Loupe2R is licensed **AGPL-3.0-or-later** (see `LICENSE`). At runtime it calls a separately-installed Python package, `loupe2py`, via reticulate; `loupe2py` in turn vendors a pinned copy of [`cellgeni/cloupe`](https://github.com/cellgeni/cloupe)'s AGPL-3.0 `.cloupe` parser directly inside itself (see [Credits](#credits) and `loupe2py`'s own README). Loupe2R's functionality is inseparable from that AGPL-3.0 code in practice — there is no non-AGPL way to get a `.cloupe` file open — so Loupe2R adopts the same license rather than drawing a technical line around the reticulate call. This was a deliberate choice made when relicensing both packages together; MIT would likely have been legally defensible for Loupe2R specifically (it doesn't bundle or vendor the AGPL code itself), but AGPL-3.0 is the license that matches the spirit of the code both packages depend on.
 
 ## Credits
 
@@ -99,4 +99,4 @@ Reproduce this validation yourself (see `tests/testthat/test-integration-visium-
 
 ## License
 
-MIT (this package) + file LICENSE. See [AGPL dependency](#agpl-dependency) above for how the separately-installed `loupe2py` dependency's own (not yet finalized) license fits in.
+AGPL-3.0-or-later + file LICENSE. See [AGPL dependency](#agpl-dependency) above for why.
