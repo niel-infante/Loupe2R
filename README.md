@@ -61,6 +61,8 @@ See `?combine_cloupe_bins` for the caveats this carries over from Seurat's own m
 
 **A `.cloupe` file cannot represent Visium HD's full multi-resolution structure.** Seurat's official path, `Seurat::Load10X_Spatial(bin.size = c(8, 16))`, loads multiple bin resolutions as separate assays from one SpaceRanger output directory. A `.cloupe` file only ever captures the single resolution that was open in Loupe Browser when it was saved; use `combine_cloupe_bins()` (above) if you have separate `.cloupe` files per resolution.
 
+**Every `.cloupe` file's count matrix carried 2 bogus "genes" with inflated totals until `loupe2py` 0.1.1→0.2.1.** The `.cloupe` format itself appends synthetic `type_sum_<FeatureType>`/`genome_sum_<Reference>` rows to the `Matrices` section — each holding a barcode's *entire* total for that category, not a real gene's count. `loupe2py` wrote these out as if they were ordinary genes, which inflated `nCount_Spatial`/`percent.mt`-style metrics (3x, for the common single-feature-type/single-genome case) and added 2 meaningless entries to the gene list. Fixed in `loupe2py` 0.2.1 — see [its NEWS.md](https://github.com/niel-infante/Loupe2Py/blob/main/NEWS.md). Re-extract if you used an earlier version; the real per-gene counts themselves were always correct, only these 2 extra rows were the problem.
+
 **Visium HD's cell-segmentation output uses a coarser spatial fallback than its binned output.** SpaceRanger 4.0+ can process a Visium HD run in two ways — binned (square bins at a chosen resolution) or cell-segmentation mode (transcripts assigned to individual cells via image-based nucleus/cell segmentation) — each producing its own separate `.cloupe` file; cell segmentation is a Visium HD analysis mode, not a separate non-HD product. Binned-mode barcodes encode their own exact grid position (see [Validation](#validation)); cell-segmentation-mode barcodes don't use that convention, so their coordinates fall back to averaging the file's per-cell-segment centroids for each barcode, which is inherently less precise than a single measured point but not corrupted — a real bug in this averaging step (`Centers` read with the wrong array layout, producing a scrambled diagonal artifact for 30-40% of cells) was found and fixed in `loupe2py` 0.1.1; see [its NEWS.md](https://github.com/niel-infante/Loupe2Py/blob/main/NEWS.md). `array_row`/`array_col` are unconditionally `(0, 0)` for cell-segmentation-mode `.cloupe` files — there's no fixed grid for individual cells to round to — which doesn't affect plotting (that uses the real pixel coordinates) but is worth knowing if you read those columns directly.
 
 **Prefer official SpaceRanger output when you have it.** If you have access to the SpaceRanger `outs/` directory for a sample, `Seurat::Load10X_Spatial()` on that is the authoritative path — use `Loupe2R` for `.cloupe`-only samples, or to cross-check.
@@ -88,7 +90,7 @@ Also indebted to [Satija Lab's Seurat](https://satijalab.org/seurat/) and [10x G
 | Check | Result |
 |---|---|
 | Barcode overlap (cloupe vs. official filtered matrix) | 100% |
-| `nCount_Spatial` correlation on shared barcodes | 1.000000 |
+| `nCount_Spatial` exact match vs. official (not just correlated) | 100% |
 | `array_row`/`array_col` exact match vs. official `tissue_positions.parquet` | 100% (0 max difference) |
 | `pxl_row_in_fullres`/`pxl_col_in_fullres` correlation | 1.000000 |
 | `spot_diameter_fullres` vs. official `scalefactors_json.json` | exact match (1.721916) |
