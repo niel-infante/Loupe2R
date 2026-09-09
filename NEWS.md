@@ -1,3 +1,10 @@
+# Loupe2R 0.4.0
+
+## Breaking changes
+
+- `Loupe2R` now calls out to [`cloupe_extract`](https://github.com/niel-infante/Loupe2Py/tree/main/cloupe_extract) instead of `loupe2py`. The extraction core previously lived inside the `loupe2py` package itself — confusingly, since `loupe2py` also names the separate Python/AnnData sibling tool. It's now split out into its own, independently pip-installable package (still inside the `Loupe2Py` repo, under `cloupe_extract/`), which `Loupe2R` depends on directly and `loupe2py` depends on transitively.
+- Install it with `pip install "cloupe_extract @ git+https://github.com/niel-infante/Loupe2Py.git#subdirectory=cloupe_extract"`. If you already have `loupe2py` installed from before this change, reinstall/upgrade it (`pip install --upgrade loupe2py`) to pick up the new `cloupe_extract` dependency, or install `cloupe_extract` directly — an old `loupe2py` install predating this split won't have it.
+
 # Loupe2R 0.3.0
 
 ## License change

@@ -1,14 +1,14 @@
 Package: Loupe2R
 Type: Package
 Title: Import 10x Genomics Visium '.cloupe' Files into Seurat Objects
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: person("Niel", "Infante", email = "nielinfante@gmail.com",
            role = c("aut", "cre", "cph"))
 Description: Extracts count matrices, spatial coordinates, tissue images, UMAP
     embeddings, and cluster labels from 10x Genomics .cloupe files (including
     Visium HD) and imports them into Seurat objects via a Python extraction
-    step (reticulate). Requires the Python package 'loupe2py' (not bundled;
-    see 'SystemRequirements').
+    step (reticulate). Requires the Python package 'cloupe_extract' (not
+    bundled; see 'SystemRequirements').
 License: AGPL-3 + file LICENSE
 URL: https://github.com/niel-infante/Loupe2R
 BugReports: https://github.com/niel-infante/Loupe2R/issues
@@ -32,9 +32,12 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 RoxygenNote: 8.0.0
 Roxygen: list(markdown = TRUE)
-SystemRequirements: Python (>= 3.9) with the loupe2py package
-    (https://github.com/niel-infante/Loupe2Py), installed separately by the
-    user, e.g. via 'pip install git+https://github.com/niel-infante/Loupe2Py.git'
-    -- NOT bundled with or distributed by this R package. loupe2py pulls in
-    numpy/scipy/Pillow itself and vendors its own copy of the .cloupe binary
-    parser, so no further Python-side setup is needed.
+SystemRequirements: Python (>= 3.9) with the cloupe_extract package
+    (https://github.com/niel-infante/Loupe2Py/tree/main/cloupe_extract),
+    installed separately by the user, e.g. via 'pip install "cloupe_extract @
+    git+https://github.com/niel-infante/Loupe2Py.git#subdirectory=cloupe_extract"'
+    -- NOT bundled with or distributed by this R package. cloupe_extract pulls
+    in numpy/scipy/Pillow itself and vendors its own copy of the .cloupe
+    binary parser, so no further Python-side setup is needed. Installing
+    'loupe2py' (the Python/AnnData sibling package) also installs
+    cloupe_extract automatically, since loupe2py depends on it.

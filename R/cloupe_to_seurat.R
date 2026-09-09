@@ -1,9 +1,10 @@
 #' Import a 10x Genomics .cloupe file into a Seurat object
 #'
-#' Calls the Python package \href{https://github.com/niel-infante/Loupe2Py}{loupe2py}
-#' via reticulate to read the .cloupe binary, then assembles a Seurat object
-#' with the count matrix, spatial coordinates, tissue image, UMAP embedding,
-#' and Spaceranger cluster labels.
+#' Calls the Python package \href{https://github.com/niel-infante/Loupe2Py/tree/main/cloupe_extract}{cloupe_extract}
+#' (the shared .cloupe extraction core also used by loupe2py, this package's
+#' Python/AnnData sibling) via reticulate to read the .cloupe binary, then
+#' assembles a Seurat object with the count matrix, spatial coordinates,
+#' tissue image, UMAP embedding, and Spaceranger cluster labels.
 #'
 #' @param cloupe_path   Path to the .cloupe file.
 #' @param sample_name   Sample name stored in \code{orig.ident}. NULL (default)
@@ -17,8 +18,8 @@
 #'                      Useful for debugging.
 #' @param condaenv      Name of conda environment to activate before extraction
 #'                      (NULL = use current reticulate Python). Set this to
-#'                      whichever environment has \code{loupe2py} installed if
-#'                      you have not otherwise configured reticulate.
+#'                      whichever environment has \code{cloupe_extract} installed
+#'                      if you have not otherwise configured reticulate.
 #'
 #' @return A Seurat object with metadata columns \code{orig.ident} and
 #'   \code{percent.mt} in addition to the standard \code{nFeature_Spatial}
@@ -27,7 +28,7 @@
 #' @examples
 #' \dontrun{
 #' library(reticulate)
-#' use_condaenv("loupe2py", required = TRUE)  # env with `pip install loupe2py`
+#' use_condaenv("loupe2py", required = TRUE)  # any env with `cloupe_extract` installed
 #'
 #' srt <- cloupe_to_seurat("path/to/sample.cloupe")
 #' SpatialFeaturePlot(srt, features = "nCount_Spatial")
@@ -62,21 +63,23 @@ cloupe_to_seurat <- function(
   # ------------------------------------------------------------------
   # Python extraction
   # ------------------------------------------------------------------
-  loupe2py <- tryCatch(
-    reticulate::import("loupe2py"),
+  cloupe_extract <- tryCatch(
+    reticulate::import("cloupe_extract"),
     error = function(e) stop(
-      "Failed to import loupe2py. Install it with:\n",
-      "  pip install git+https://github.com/niel-infante/Loupe2Py.git\n",
+      "Failed to import cloupe_extract. Install it with:\n",
+      "  pip install \"cloupe_extract @ git+https://github.com/niel-infante/Loupe2Py.git#subdirectory=cloupe_extract\"\n",
       "into the Python environment reticulate will use (numpy, scipy, and\n",
-      "Pillow are pulled in automatically as loupe2py dependencies; no\n",
-      "separate cloupe-parser install or path configuration is needed).\n\n",
+      "Pillow are pulled in automatically as cloupe_extract dependencies; no\n",
+      "separate cloupe-parser install or path configuration is needed). This\n",
+      "is also installed automatically if you instead `pip install loupe2py`\n",
+      "(the Python/AnnData sibling package, which depends on cloupe_extract).\n\n",
       "Original error: ", conditionMessage(e)
     )
   )
 
   message(sprintf("Extracting from %s (may take several minutes)...",
                   basename(cloupe_path)))
-  loupe2py$extract_cloupe(cloupe_path, outdir, include_image = include_image)
+  cloupe_extract$extract_cloupe(cloupe_path, outdir, include_image = include_image)
 
   # ------------------------------------------------------------------
   # Build Seurat object from extracted files

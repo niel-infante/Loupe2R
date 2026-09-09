@@ -21,7 +21,7 @@ cloupe_to_seurat(
 )
 ```
 
-Imports one `.cloupe` file — Visium HD, in either binned or cell-segmentation mode — into a `Seurat` object. Calls out to [`loupe2py`](https://github.com/niel-infante/Loupe2Py) via `reticulate` to do the actual `.cloupe` parsing, then assembles the count matrix, spatial coordinates, tissue image, UMAP/other embeddings, Space Ranger graph/k-means clusterings (stored as `sr_`-prefixed metadata columns), and any user-created Loupe Browser cell tracks into the returned object. Also stashes `bin_size_um` and `cloupe_format_info` via `Seurat::Misc()` for provenance, and computes `percent.mt`.
+Imports one `.cloupe` file — Visium HD, in either binned or cell-segmentation mode — into a `Seurat` object. Calls out to [`cloupe_extract`](https://github.com/niel-infante/Loupe2Py/tree/main/cloupe_extract) via `reticulate` to do the actual `.cloupe` parsing, then assembles the count matrix, spatial coordinates, tissue image, UMAP/other embeddings, Space Ranger graph/k-means clusterings (stored as `sr_`-prefixed metadata columns), and any user-created Loupe Browser cell tracks into the returned object. Also stashes `bin_size_um` and `cloupe_format_info` via `Seurat::Misc()` for provenance, and computes `percent.mt`.
 
 - `cloupe_path` — path to the `.cloupe` file.
 - `sample_name` — stored in `orig.ident`; defaults to the `.cloupe` filename with its extension stripped.

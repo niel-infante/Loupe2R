@@ -35,8 +35,8 @@ Useful for debugging.}
 
 \item{condaenv}{Name of conda environment to activate before extraction
 (NULL = use current reticulate Python). Set this to
-whichever environment has \code{loupe2py} installed if
-you have not otherwise configured reticulate.}
+whichever environment has \code{cloupe_extract} installed
+if you have not otherwise configured reticulate.}
 }
 \value{
 A Seurat object with metadata columns \code{orig.ident} and
@@ -44,15 +44,16 @@ A Seurat object with metadata columns \code{orig.ident} and
 and \code{nCount_Spatial} fields.
 }
 \description{
-Calls the Python package \href{https://github.com/niel-infante/Loupe2Py}{loupe2py}
-via reticulate to read the .cloupe binary, then assembles a Seurat object
-with the count matrix, spatial coordinates, tissue image, UMAP embedding,
-and Spaceranger cluster labels.
+Calls the Python package \href{https://github.com/niel-infante/Loupe2Py/tree/main/cloupe_extract}{cloupe_extract}
+(the shared .cloupe extraction core also used by loupe2py, this package's
+Python/AnnData sibling) via reticulate to read the .cloupe binary, then
+assembles a Seurat object with the count matrix, spatial coordinates,
+tissue image, UMAP embedding, and Spaceranger cluster labels.
 }
 \examples{
 \dontrun{
 library(reticulate)
-use_condaenv("loupe2py", required = TRUE)  # env with `pip install loupe2py`
+use_condaenv("loupe2py", required = TRUE)  # any env with `cloupe_extract` installed
 
 srt <- cloupe_to_seurat("path/to/sample.cloupe")
 SpatialFeaturePlot(srt, features = "nCount_Spatial")

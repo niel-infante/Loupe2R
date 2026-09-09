@@ -23,17 +23,18 @@ knitr::opts_chunk$set(
 
 ## Prerequisites
 
-`Loupe2R` calls out to [`loupe2py`](https://github.com/niel-infante/Loupe2Py) -- a separate, pip-installable Python package that does the actual `.cloupe` parsing -- via `reticulate`. You need:
+`Loupe2R` calls out to [`cloupe_extract`](https://github.com/niel-infante/Loupe2Py/tree/main/cloupe_extract) -- a separate, pip-installable Python package that does the actual `.cloupe` parsing -- via `reticulate`. You need:
 
 ```{r}
-# pip install git+https://github.com/niel-infante/Loupe2Py.git
+# pip install "cloupe_extract @ git+https://github.com/niel-infante/Loupe2Py.git#subdirectory=cloupe_extract"
+# (or `pip install loupe2py`, the Python/AnnData sibling package, which installs cloupe_extract automatically)
 ```
 
-`loupe2py` pulls in `numpy`/`scipy`/`Pillow` itself and vendors its own copy of the `.cloupe` binary parser, so nothing further is needed on the Python side.
+`cloupe_extract` pulls in `numpy`/`scipy`/`Pillow` itself and vendors its own copy of the `.cloupe` binary parser, so nothing further is needed on the Python side.
 
 ```{r}
 library(reticulate)
-use_condaenv("loupe2py", required = TRUE)  # any env with `pip install loupe2py`
+use_condaenv("loupe2py", required = TRUE)  # any env with `cloupe_extract` installed
 
 library(Loupe2R)
 ```
@@ -76,7 +77,7 @@ This is a supported structure, not a workaround: Seurat v5's `Assay5` objects do
 
 ## Limitations & Risks
 
-**The `.cloupe` format is undocumented and proprietary.** `Loupe2R` parses it via [`loupe2py`](https://github.com/niel-infante/Loupe2Py), which vendors [`cellgeni/cloupe`](https://github.com/cellgeni/cloupe), an unofficial, reverse-engineered tool with no version-compatibility guarantees. Every extraction checks the file's internal format-version fields against a known-tested set (`check_format_version()` in `loupe2py`'s `extract.py`) and emits an R `warning()` -- while still proceeding -- if a file reports an unrecognized version. The detected versions are always available afterward via `Seurat::Misc(srt, "cloupe_format_info")`.
+**The `.cloupe` format is undocumented and proprietary.** `Loupe2R` parses it via [`cloupe_extract`](https://github.com/niel-infante/Loupe2Py/tree/main/cloupe_extract), which vendors [`cellgeni/cloupe`](https://github.com/cellgeni/cloupe), an unofficial, reverse-engineered tool with no version-compatibility guarantees. Every extraction checks the file's internal format-version fields against a known-tested set (`check_format_version()` in `cloupe_extract`'s `extract.py`) and emits an R `warning()` -- while still proceeding -- if a file reports an unrecognized version. The detected versions are always available afterward via `Seurat::Misc(srt, "cloupe_format_info")`.
 
 **Loupe-derived annotations reflect default, unfiltered pipeline parameters.** [satijalab/seurat#9269](https://github.com/satijalab/seurat/issues/9269): Loupe Browser exports (and by extension, anything read back out of a `.cloupe` file) reflect whatever SpaceRanger/CellRanger ran with by default -- no manual QC, filtering, or normalization choices are captured. Treat `sr_*` clusterings as exploratory defaults.
 
@@ -113,4 +114,4 @@ This exact methodology (see `tests/testthat/test-integration-visium-hd.R` in the
 
 The `array_row`/`array_col` result is worth explaining, because it wasn't the outcome originally expected. The first implementation computed array position as `round(pixel_coordinate / bin_size_px)` from the stitched image's own pixel coordinates -- reasonable-sounding, but it disagreed with SpaceRanger's official grid by roughly 450 bins on this sample: a large, near-constant offset, not the small boundary-rounding noise that approach was expected to produce. The cause was that the `.cloupe` file's stitched tissue image is cropped to the detected tissue region, so its pixel origin `(0, 0)` doesn't line up with SpaceRanger's own full-slide coordinate reference frame -- any fixed-origin reconstruction from pixel coordinates alone was going to inherit that offset.
 
-The fix: Visium HD barcodes already encode their exact grid position in the barcode string itself, e.g. `s_008um_00269_00526-1` is row 269, column 526 -- directly, with no reconstruction needed. `loupe2py`'s `parse_array_position()` parses this pattern when present, which is what produced the 100% exact match above across all 472,752 spots. Barcodes that don't follow this convention (e.g. `cellid_...`, from Visium HD's cell-segmentation-mode `.cloupe` files) fall back to the pixel-based approximation, which is worth keeping in mind for that data type specifically.
+The fix: Visium HD barcodes already encode their exact grid position in the barcode string itself, e.g. `s_008um_00269_00526-1` is row 269, column 526 -- directly, with no reconstruction needed. `cloupe_extract`'s `parse_array_position()` parses this pattern when present, which is what produced the 100% exact match above across all 472,752 spots. Barcodes that don't follow this convention (e.g. `cellid_...`, from Visium HD's cell-segmentation-mode `.cloupe` files) fall back to the pixel-based approximation, which is worth keeping in mind for that data type specifically.
