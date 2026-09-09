@@ -4,6 +4,10 @@
 
 - **An unrecognized `.cloupe` format version now aborts `cloupe_to_seurat()` with an error by default, instead of just warning.** Previously, a file reporting a format version outside the validated set emitted an R `warning()` and extraction proceeded anyway. `cloupe_to_seurat()` now stops before extracting anything unless called with the new `version_check = FALSE`, which restores the previous warn-and-proceed behavior (an R `warning()` is still raised) and puts the responsibility for verifying the result on you. This is driven by the same change in `cloupe_extract` 0.2.0 (raises `UnvalidatedFormatVersionError` in Python, which reticulate propagates as an R error) — upgrade `cloupe_extract` to pick it up.
 
+## Testing
+
+- New opt-in integration test, `test-integration-cellseg.R` (gated by `LOUPE2R_CELLSEG_TEST_DIR`), cross-validates `cloupe_to_seurat()` against real official SpaceRanger cell-segmentation output — barcode overlap, count concordance, and polygon-centroid position, the same methodology `test-integration-visium-hd.R` already applies to binned mode. Previously, cell-segmentation correctness for `Loupe2R` specifically was inferred from sharing `cloupe_extract` with `loupe2py` (which does have its own cell-segmentation test data), not independently confirmed. Run against the Human Kidney FFPE dataset used in the JBT paper draft: 100.0000% barcode overlap, 100.0000% count exact match, centroid distance 0.0000 px mean/median (148,056 cells) — matching the paper's reported numbers. Adds `sf` to `Suggests` (used for official polygon centroids; the test is skipped if not installed).
+
 # Loupe2R 0.4.0
 
 ## Breaking changes

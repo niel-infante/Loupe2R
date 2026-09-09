@@ -11,7 +11,8 @@ Loupe2R imports 10x Genomics `.cloupe` files (Visium HD, binned and cell-segment
 | `R/cloupe_to_seurat.R` | Main entry point — calls `cloupe_extract` via reticulate, assembles the `Seurat` object |
 | `R/combine_cloupe_bins.R` | Merges multiple single-resolution `cloupe_to_seurat()` outputs into one multi-assay object |
 | `R/utils.R` | `.detect_mt_pattern()`, `.derive_sample_name()`, `.align_positions()` |
-| `tests/testthat/test-integration-visium-hd.R` | Opt-in regression test against real paired `.cloupe`/SpaceRanger `outs/` data, gated by `LOUPE2R_TEST_DIR` |
+| `tests/testthat/test-integration-visium-hd.R` | Opt-in regression test against real paired `.cloupe`/SpaceRanger `outs/` data (binned mode), gated by `LOUPE2R_TEST_DIR` |
+| `tests/testthat/test-integration-cellseg.R` | Opt-in regression test against real paired `.cloupe`/SpaceRanger cell-segmentation output, gated by `LOUPE2R_CELLSEG_TEST_DIR`. Uses `sf` for official polygon centroids (planar/GEOS, not spherical -- see the comment above `sf_use_s2(FALSE)` in the file). |
 
 ## When a new SpaceRanger version is released
 
