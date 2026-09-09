@@ -20,6 +20,14 @@
 #'                      (NULL = use current reticulate Python). Set this to
 #'                      whichever environment has \code{cloupe_extract} installed
 #'                      if you have not otherwise configured reticulate.
+#' @param version_check If TRUE (default), abort with an error when the file's
+#'                      internal .cloupe format version(s) haven't been
+#'                      validated against real paired SpaceRanger output.
+#'                      Set to FALSE to proceed anyway (a warning is still
+#'                      raised and the detected versions are still stashed via
+#'                      \code{Seurat::Misc(srt, "cloupe_format_info")}) -- you
+#'                      are then responsible for independently verifying the
+#'                      result before trusting it.
 #'
 #' @return A Seurat object with metadata columns \code{orig.ident} and
 #'   \code{percent.mt} in addition to the standard \code{nFeature_Spatial}
@@ -45,7 +53,8 @@ cloupe_to_seurat <- function(
   include_image = TRUE,
   outdir        = NULL,
   keep_files    = FALSE,
-  condaenv      = NULL
+  condaenv      = NULL,
+  version_check = TRUE
 ) {
   if (!is.null(condaenv))
     reticulate::use_condaenv(condaenv, required = TRUE)
@@ -79,7 +88,14 @@ cloupe_to_seurat <- function(
 
   message(sprintf("Extracting from %s (may take several minutes)...",
                   basename(cloupe_path)))
-  cloupe_extract$extract_cloupe(cloupe_path, outdir, include_image = include_image)
+  # version_check = TRUE (default) raises a Python UnvalidatedFormatVersionError
+  # here -- which reticulate propagates as an R error, aborting this function
+  # immediately -- if the file reports a .cloupe format version outside the
+  # validated set. Pass version_check = FALSE to proceed anyway; see the
+  # warning block below for what happens in that case.
+  cloupe_extract$extract_cloupe(
+    cloupe_path, outdir, include_image = include_image, version_check = version_check
+  )
 
   # ------------------------------------------------------------------
   # Build Seurat object from extracted files
@@ -122,20 +138,24 @@ cloupe_to_seurat <- function(
   srt$percent.mt[is.na(srt$percent.mt)] <- 0
 
   # ------------------------------------------------------------------
-  # Format-version provenance: surface as a warning if anything in the file
-  # is outside the range of .cloupe versions this package has been
-  # validated against, and stash the detected versions + bin size on the
-  # object either way (useful for debugging / methods-section provenance).
+  # Format-version provenance. With version_check = TRUE (default), the
+  # extract_cloupe() call above already aborted this function entirely if
+  # anything was unvalidated -- so warnings here only appear when the caller
+  # explicitly passed version_check = FALSE and accepted that risk. Either
+  # way, stash the detected versions + bin size on the object for
+  # methods-section provenance.
   # ------------------------------------------------------------------
   fmt_info_path <- file.path(outdir, "format_info.json")
   if (file.exists(fmt_info_path)) {
     fmt_info <- jsonlite::read_json(fmt_info_path, simplifyVector = TRUE)
     if (length(fmt_info$warnings) > 0) {
       warning(
-        "Unvalidated .cloupe format version(s) detected:\n  ",
+        "Unvalidated .cloupe format version(s) detected (proceeding because ",
+        "version_check = FALSE):\n  ",
         paste(fmt_info$warnings, collapse = "\n  "),
-        "\nExtraction proceeded, but treat results with extra scrutiny. ",
-        "See the package README for the list of validated format versions.",
+        "\nExtraction proceeded, but you are responsible for independently ",
+        "verifying results with extra scrutiny. See the package README for ",
+        "the list of validated format versions.",
         call. = FALSE
       )
     }

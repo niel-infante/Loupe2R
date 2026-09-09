@@ -1,7 +1,7 @@
 Package: Loupe2R
 Type: Package
 Title: Import 10x Genomics Visium '.cloupe' Files into Seurat Objects
-Version: 0.4.0
+Version: 0.5.0
 Authors@R: person("Niel", "Infante", email = "nielinfante@gmail.com",
            role = c("aut", "cre", "cph"))
 Description: Extracts count matrices, spatial coordinates, tissue images, UMAP

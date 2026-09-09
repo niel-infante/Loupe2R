@@ -12,7 +12,8 @@ cloupe_to_seurat(
   include_image = TRUE,
   outdir = NULL,
   keep_files = FALSE,
-  condaenv = NULL
+  condaenv = NULL,
+  version_check = TRUE
 )
 }
 \arguments{
@@ -37,6 +38,15 @@ Useful for debugging.}
 (NULL = use current reticulate Python). Set this to
 whichever environment has \code{cloupe_extract} installed
 if you have not otherwise configured reticulate.}
+
+\item{version_check}{If TRUE (default), abort with an error when the file's
+internal .cloupe format version(s) haven't been
+validated against real paired SpaceRanger output.
+Set to FALSE to proceed anyway (a warning is still
+raised and the detected versions are still stashed via
+\code{Seurat::Misc(srt, "cloupe_format_info")}) -- you
+are then responsible for independently verifying the
+result before trusting it.}
 }
 \value{
 A Seurat object with metadata columns \code{orig.ident} and

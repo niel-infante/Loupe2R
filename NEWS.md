@@ -1,3 +1,9 @@
+# Loupe2R 0.5.0
+
+## Breaking changes
+
+- **An unrecognized `.cloupe` format version now aborts `cloupe_to_seurat()` with an error by default, instead of just warning.** Previously, a file reporting a format version outside the validated set emitted an R `warning()` and extraction proceeded anyway. `cloupe_to_seurat()` now stops before extracting anything unless called with the new `version_check = FALSE`, which restores the previous warn-and-proceed behavior (an R `warning()` is still raised) and puts the responsibility for verifying the result on you. This is driven by the same change in `cloupe_extract` 0.2.0 (raises `UnvalidatedFormatVersionError` in Python, which reticulate propagates as an R error) — upgrade `cloupe_extract` to pick it up.
+
 # Loupe2R 0.4.0
 
 ## Breaking changes

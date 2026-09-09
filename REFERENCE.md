@@ -17,7 +17,8 @@ cloupe_to_seurat(
   include_image = TRUE,
   outdir        = NULL,
   keep_files    = FALSE,
-  condaenv      = NULL
+  condaenv      = NULL,
+  version_check = TRUE
 )
 ```
 
@@ -29,6 +30,7 @@ Imports one `.cloupe` file — Visium HD, in either binned or cell-segmentation 
 - `include_image` — whether to reconstruct and embed the tissue image.
 - `outdir`, `keep_files` — control where intermediate extracted files go; `NULL`/`FALSE` uses an auto-deleted temp directory.
 - `condaenv` — reticulate conda environment to activate first, if not already configured.
+- `version_check` — if `TRUE` (default), abort with an error when the file reports a `.cloupe` internal format version outside the validated set, before extracting anything. `FALSE` proceeds anyway (an R `warning()` is raised instead); you're then responsible for independently verifying the result.
 
 Returns a `Seurat` object.
 
