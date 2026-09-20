@@ -28,6 +28,19 @@
 #'                      \code{Seurat::Misc(srt, "cloupe_format_info")}) -- you
 #'                      are then responsible for independently verifying the
 #'                      result before trusting it.
+#' @param px_per_bin    Target tissue-image resolution, as output pixels per
+#'                      finest-grid bin (or per nominal 10um cell for
+#'                      cell-segmentation-mode files). Default 4 keeps the
+#'                      reconstructed image well clear of both a Python-side
+#'                      crash (Pillow's decompression-bomb guard tripping on
+#'                      reload) and an R-side one (\code{png::readPNG()}
+#'                      expanding a very large image to double precision and
+#'                      hitting R's vector memory limit) -- full
+#'                      native-resolution reconstruction can be several
+#'                      billion pixels for a large capture area and is a real
+#'                      crash risk on both sides. Pass NULL for the old,
+#'                      only-ever behavior: full native resolution, no
+#'                      resize. Ignored when \code{include_image = FALSE}.
 #'
 #' @return A Seurat object with metadata columns \code{orig.ident} and
 #'   \code{percent.mt} in addition to the standard \code{nFeature_Spatial}
@@ -54,7 +67,8 @@ cloupe_to_seurat <- function(
   outdir        = NULL,
   keep_files    = FALSE,
   condaenv      = NULL,
-  version_check = TRUE
+  version_check = TRUE,
+  px_per_bin    = 4
 ) {
   if (!is.null(condaenv))
     reticulate::use_condaenv(condaenv, required = TRUE)
@@ -93,8 +107,12 @@ cloupe_to_seurat <- function(
   # immediately -- if the file reports a .cloupe format version outside the
   # validated set. Pass version_check = FALSE to proceed anyway; see the
   # warning block below for what happens in that case.
+  # px_per_bin = NULL is passed through as-is; reticulate converts R NULL to
+  # Python None automatically, which extract_cloupe() treats as an explicit
+  # opt-out into native-resolution reconstruction (see its own docstring).
   cloupe_extract$extract_cloupe(
-    cloupe_path, outdir, include_image = include_image, version_check = version_check
+    cloupe_path, outdir, include_image = include_image, version_check = version_check,
+    px_per_bin = px_per_bin
   )
 
   # ------------------------------------------------------------------
@@ -179,9 +197,10 @@ cloupe_to_seurat <- function(
     # Store raw, unscaled fullres pixel coordinates (Seurat's own convention
     # per GetTissueCoordinates()/Read10X_Coordinates() -- scaling to whatever
     # raster is displayed happens at plot time, not at construction time).
-    # hires_sf is always 1.0 here today (see the comment in cloupe_extract.py
-    # on why), so this was previously a harmless no-op, but multiplying by it
-    # here would double-scale coordinates if that ever changed.
+    # spot = spot_d * hires_sf is the general, correct formula for that:
+    # spot_d is always in fullres pixel units, and hires_sf (now genuinely
+    # < 1.0 whenever px_per_bin downsamples the image, see extract.py) rescales
+    # it down to the embedded raster's own pixel units for plotting.
     coords_df <- data.frame(
       tissue   = 1L,
       row      = pos$array_row,

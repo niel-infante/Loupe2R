@@ -13,7 +13,8 @@ cloupe_to_seurat(
   outdir = NULL,
   keep_files = FALSE,
   condaenv = NULL,
-  version_check = TRUE
+  version_check = TRUE,
+  px_per_bin = 4
 )
 }
 \arguments{
@@ -47,6 +48,20 @@ raised and the detected versions are still stashed via
 \code{Seurat::Misc(srt, "cloupe_format_info")}) -- you
 are then responsible for independently verifying the
 result before trusting it.}
+
+\item{px_per_bin}{Target tissue-image resolution, as output pixels per
+finest-grid bin (or per nominal 10um cell for
+cell-segmentation-mode files). Default 4 keeps the
+reconstructed image well clear of both a Python-side
+crash (Pillow's decompression-bomb guard tripping on
+reload) and an R-side one (\code{png::readPNG()}
+expanding a very large image to double precision and
+hitting R's vector memory limit) -- full
+native-resolution reconstruction can be several
+billion pixels for a large capture area and is a real
+crash risk on both sides. Pass NULL for the old,
+only-ever behavior: full native resolution, no
+resize. Ignored when \code{include_image = FALSE}.}
 }
 \value{
 A Seurat object with metadata columns \code{orig.ident} and

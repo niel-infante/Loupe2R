@@ -1,3 +1,13 @@
+# Loupe2R 0.6.0
+
+## Breaking changes
+
+- **Tissue image reconstruction no longer defaults to native resolution.** `cloupe_to_seurat()` gained `px_per_bin` (default `4`, passed straight through to `cloupe_extract$extract_cloupe()`): the target tissue-image resolution, expressed as output pixels per finest-grid bin, rather than always reconstructing at full native resolution. On a real large Visium HD sample, unconditional native-resolution reconstruction was a confirmed crash: `png::readPNG()` expands the image to double precision and hit R's 30 GB vector memory limit outright. Pass `px_per_bin = NULL` to opt back into the old, only-ever behavior. `scale.factors$hires`/`$lowres` on the embedded `VisiumV2`/`VisiumV1` image are no longer always `1.0` -- they now reflect the real resize ratio; this package's coordinate handling already stored raw fullres coordinates and passed the scale factor through generically, so no other logic changed. See `cloupe_extract`'s own `NEWS.md` for the underlying fix.
+
+## Testing
+
+- New opt-in integration test, `test-integration-large-image.R` (gated by `LOUPE2R_LARGE_IMAGE_TEST_DIR`), is a direct regression test for the R-side crash above: runs `cloupe_to_seurat()` with the new default `px_per_bin` against the same large real sample that used to crash, and confirms the embedded image is genuinely smaller than native with a non-`1.0` scale factor.
+
 # Loupe2R 0.5.0
 
 ## Breaking changes

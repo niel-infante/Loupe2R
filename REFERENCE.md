@@ -18,7 +18,8 @@ cloupe_to_seurat(
   outdir        = NULL,
   keep_files    = FALSE,
   condaenv      = NULL,
-  version_check = TRUE
+  version_check = TRUE,
+  px_per_bin    = 4
 )
 ```
 
@@ -31,6 +32,7 @@ Imports one `.cloupe` file — Visium HD, in either binned or cell-segmentation 
 - `outdir`, `keep_files` — control where intermediate extracted files go; `NULL`/`FALSE` uses an auto-deleted temp directory.
 - `condaenv` — reticulate conda environment to activate first, if not already configured.
 - `version_check` — if `TRUE` (default), abort with an error when the file reports a `.cloupe` internal format version outside the validated set, before extracting anything. `FALSE` proceeds anyway (an R `warning()` is raised instead); you're then responsible for independently verifying the result.
+- `px_per_bin` — target tissue-image resolution, as output pixels per finest-grid bin (or per nominal 10µm cell for cell-segmentation-mode files). Default `4` keeps the reconstructed image well clear of both a Python-side crash (Pillow's decompression-bomb guard) and an R-side one (`png::readPNG()` hitting R's vector memory limit) on large capture areas. Pass `NULL` for the old, only-ever behavior: full native resolution, no resize. Ignored when `include_image = FALSE`.
 
 Returns a `Seurat` object.
 
