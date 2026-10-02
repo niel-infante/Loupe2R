@@ -39,3 +39,34 @@
   rownames(pos) <- pos$barcode
   pos[cell_names, ]
 }
+
+#' Reshape estimate_image_memory()'s raw Python result into a data.frame
+#'
+#' Internal. `results` is what reticulate hands back from
+#' `cloupe_extract$estimate_image_memory()`: a list of named lists, one per
+#' requested px_per_bin, each with `px_per_bin` (NULL for native),
+#' `image_size` (a 2-element width/height list), `clamped_to_native`,
+#' `python_peak_gb`, `r_reload_peak_gb`. Kept separate from
+#' `estimate_image_memory()` itself so this reshape step is testable without
+#' a real Python call.
+#'
+#' @param results List of named lists, as returned by
+#'   `cloupe_extract$estimate_image_memory()`.
+#' @return A data.frame with columns `px_per_bin` (NA = native),
+#'   `image_width`, `image_height`, `clamped_to_native`, `python_peak_gb`,
+#'   `r_reload_peak_gb`.
+#' @noRd
+.image_memory_table <- function(results) {
+  data.frame(
+    px_per_bin = vapply(
+      results,
+      function(r) if (is.null(r$px_per_bin)) NA_real_ else as.numeric(r$px_per_bin),
+      numeric(1)
+    ),
+    image_width       = vapply(results, function(r) r$image_size[[1]], numeric(1)),
+    image_height      = vapply(results, function(r) r$image_size[[2]], numeric(1)),
+    clamped_to_native = vapply(results, function(r) r$clamped_to_native, logical(1)),
+    python_peak_gb    = vapply(results, function(r) r$python_peak_gb, numeric(1)),
+    r_reload_peak_gb  = vapply(results, function(r) r$r_reload_peak_gb, numeric(1))
+  )
+}

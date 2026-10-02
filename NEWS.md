@@ -1,3 +1,9 @@
+# Loupe2R 0.7.0
+
+## New features
+
+- **`estimate_image_memory(cloupe_path, px_per_bin = list(NULL, 16, 8, 4, 2, 1))`**: scopes tissue-image memory cost across candidate `px_per_bin` resolutions before committing to a real `cloupe_to_seurat()` call. Calls `cloupe_extract`'s own `estimate_image_memory()` (0.4.0) via reticulate -- a cheap read that skips the count matrix entirely and never decodes tile pixel bytes, confirmed directly against the real CRC validation file at ~4.6s vs. `cloupe_to_seurat()`'s measured 667.7s. Returns a data.frame with `image_width`/`image_height`, `clamped_to_native`, and two memory estimates per resolution: `python_peak_gb` (the Pillow-side stitching peak) and `r_reload_peak_gb` (this package's own `png::readPNG()` reload peak -- the tighter constraint in practice, and the one that actually crashed on a real oversized image; see `cloupe_to_seurat()`'s `px_per_bin` documentation).
+
 # Loupe2R 0.6.0
 
 ## Breaking changes

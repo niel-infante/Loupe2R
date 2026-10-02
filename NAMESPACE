@@ -2,5 +2,6 @@
 
 export(cloupe_to_seurat)
 export(combine_cloupe_bins)
+export(estimate_image_memory)
 importFrom(methods,new)
 importFrom(utils,read.csv)
